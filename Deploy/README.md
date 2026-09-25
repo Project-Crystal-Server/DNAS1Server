@@ -13,9 +13,8 @@ The output is `publish/linux-x64/DNAS1Server` plus the `keys/` folder it reads a
 
 ## Install
 
-Copy `publish/linux-x64/DNAS1Server`, `publish/linux-x64/keys/` and `deploy/dnas1server.service` to the Linux host, then:
-
-To set region (`us` or `jp`), edit the `DNAS_REGION` variable in `deploy/dnas1server.service`. Default is `us`.
+There is one unit per region: `deploy/us.dnas1server.service` and `deploy/jp.dnas1server.service`.
+Copy `publish/linux-x64/DNAS1Server`, `publish/linux-x64/keys/` and the unit(s) you need to the Linux host, then:
 
 ```bash
 cd <where you copied the files to>
@@ -24,16 +23,41 @@ sudo cp DNAS1Server /opt/dnas1server/
 sudo cp -r keys /opt/dnas1server/
 sudo chmod 755 /opt/dnas1server/DNAS1Server /opt/dnas1server/keys
 sudo chmod 644 /opt/dnas1server/keys/*
-sudo cp dnas1server.service /etc/systemd/system/
+sudo cp us.dnas1server.service /etc/systemd/system/
 sudo systemctl daemon-reload
-sudo systemctl enable --now dnas1server
+sudo systemctl enable --now us.dnas1server
 ```
+
+Use `jp.dnas1server` instead for the JP region.
+
+## Both regions on one host
+
+Each instance binds port 443, so each needs its own IPv4 address. Set `DNAS_BIND_IP` in each unit
+(empty = all interfaces) before copying them.
+
+On a DigitalOcean droplet, give the droplet a Reserved IP. The US instance binds the droplet's public IP,
+the JP instance binds the droplet's anchor IP (traffic to the Reserved IP arrives there):
+
+```bash
+curl -s http://169.254.169.254/metadata/v1/interfaces/public/0/ipv4/address
+curl -s http://169.254.169.254/metadata/v1/interfaces/public/0/anchor_ipv4/address
+```
+
+Install as above with both units, then:
+
+```bash
+sudo systemctl enable --now us.dnas1server jp.dnas1server
+```
+
+Point the US DNAS hostname at the public IP and the JP DNAS hostname at the Reserved IP.
 
 ## Operate
 
-View Status: `systemctl status dnas1server`
-View Log: `journalctl -u dnas1server -f`
-Control: `systemctl start/stop/restart dnas1server`
+View Status: `systemctl status us.dnas1server`
+View Log: `journalctl -u us.dnas1server -f`
+Control: `systemctl start/stop/restart us.dnas1server`
+
+Replace `us` with `jp` for the JP instance.
 
 ## Notes
 

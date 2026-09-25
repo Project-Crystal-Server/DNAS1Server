@@ -61,6 +61,15 @@ namespace Crystal.DNAS1Server
                 return 1;
             }
 
+            // Get the IP we listen on (all interfaces unless set)
+            IPAddress bindIp = IPAddress.Any;
+            string? bindIpSetting = Environment.GetEnvironmentVariable("DNAS_BIND_IP");
+            if (!string.IsNullOrEmpty(bindIpSetting) && !IPAddress.TryParse(bindIpSetting, out bindIp!))
+            {
+                Console.Error.WriteLine("Invalid bind IP selected");
+                return 1;
+            }
+
             // The certificate chain and key live in keys/ next to the executable.
             string certFile = Path.Combine(AppContext.BaseDirectory, "keys", $"dnas1.{Region}.chain.crt");
             string keyFile = Path.Combine(AppContext.BaseDirectory, "keys", $"dnas1.{Region}.key");
@@ -86,10 +95,10 @@ namespace Crystal.DNAS1Server
                 shutdown.Cancel();
             };
 
-            TcpListener server = new TcpListener(IPAddress.Any, 443);
+            TcpListener server = new TcpListener(bindIp, 443);
             server.Start();
 
-            Console.WriteLine($"DNAS1 started (Region:{Region.ToUpper()})...");
+            Console.WriteLine($"DNAS1 started (Region:{Region.ToUpper()}, IP:{bindIp})...");
 
             try
             {

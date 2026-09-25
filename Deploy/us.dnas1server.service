@@ -1,0 +1,26 @@
+[Unit]
+Description=DNAS1 Server (PS2 DNAS v1 emulator, US)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/opt/dnas1server/DNAS1Server
+WorkingDirectory=/opt/dnas1server
+Environment=DNAS_REGION=us
+Environment=DNAS_BIND_IP=
+Environment=DOTNET_gcServer=0
+DynamicUser=yes
+AmbientCapabilities=CAP_NET_BIND_SERVICE
+CapabilityBoundingSet=CAP_NET_BIND_SERVICE
+Restart=always
+RestartSec=3
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+SyslogIdentifier=dnas1server-us
+
+[Install]
+WantedBy=multi-user.target
